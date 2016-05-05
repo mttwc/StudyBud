@@ -1,10 +1,28 @@
-﻿using Microsoft.Bot.Connector;
+﻿using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
+using System;
 using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace StudyBud
 {
+    [Serializable]
+    public class EchoDialog : IDialog<object>
+    {
+        public async Task StartAsync(IDialogContext context)
+        {
+            context.Wait(MessageReceivedAsync);
+        }
+
+        public async Task MessageReceivedAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+            await context.PostAsync($"You said: {message.Text}");
+            context.Wait(MessageReceivedAsync);
+        }
+    }
+
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -16,11 +34,7 @@ namespace StudyBud
         {
             if (message.Type == "Message")
             {
-                // calculate something for us to return
-                int length = (message.Text ?? string.Empty).Length;
-
-                // return our reply to the user
-                return message.CreateReplyMessage($"You sent {length} characters");
+                return await Conversation.SendAsync(message, () => new EchoDialog());
             }
             else
             {
