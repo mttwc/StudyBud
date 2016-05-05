@@ -1,13 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using Microsoft.Bot.Connector;
+using Microsoft.Bot.Connector.Utilities;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Description;
-using Microsoft.Bot.Connector;
-using Microsoft.Bot.Connector.Utilities;
-using Newtonsoft.Json;
 
 namespace StudyBud
 {
@@ -52,6 +46,8 @@ namespace StudyBud
             }
             else if (message.Type == "BotRemovedFromConversation")
             {
+                Message reply = message.CreateReplyMessage("goodbye");
+                return reply;
             }
             else if (message.Type == "UserAddedToConversation")
             {
