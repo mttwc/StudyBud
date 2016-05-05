@@ -16,32 +16,24 @@ namespace StudyBud
 
         public async Task StartAsync(IDialogContext context)
         {
-            this.questions = Parser.Parse<Question>(@"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv");
-            context.Wait(MessageReceivedAsync);
+            questions = Parser.Parse<Question>(@"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv");
+            context.Wait(WaitingOnStartAsync);
         }
 
-        public async Task MessageReceivedAsync(IDialogContext context, IAwaitable<Message> argument)
+        public async Task WaitingOnStartAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
             if (message.Text == "start")
             {
                 await context.PostAsync("Let the quiz begin!");
-                await context.PostAsync(this.questions[this.curQuestion].Body);
-
-                var choiceStr = "";
-                var choices = this.questions[this.curQuestion].Choices.Split(';');
-                for (var i = 0; i < choices.Length; i++)
-                {
-                    choiceStr += $"[{i}]: {choices[i]}. ";
-                }
-                await context.PostAsync(choiceStr);
+                await PostQuestion(context, curQuestion);
 
                 context.Wait(QuizAsync);
             }
             else
             {
                 await context.PostAsync("Type 'start' to begin the quiz!");
-                context.Wait(MessageReceivedAsync);
+                context.Wait(WaitingOnStartAsync);
             }
         }
 
@@ -62,27 +54,21 @@ namespace StudyBud
                 if (int.TryParse(message.Text, out choice))
                 {
                     var response = $"You selected: {choice}. ";
-                    if (choice == int.Parse(this.questions[curQuestion].Answer))
+                    response += choice == int.Parse(this.questions[curQuestion].Answer) ?
+                        "That is correct!" :
+                        response += $"The actual answer is: {this.questions[curQuestion].Answer}";
+                    await context.PostAsync(response);
+
+                    if (curQuestion == questions.Count - 1)
                     {
-                        response += "That is correct!";
+                        await context.PostAsync("You have completed the demo! Type 'start' to begin the quiz again!");
+                        context.Wait(WaitingOnStartAsync);
                     }
                     else
                     {
-                        response += $"The actual answer is: {this.questions[curQuestion].Answer}";
+                        await PostQuestion(context, ++this.curQuestion);
+                        context.Wait(QuizAsync);
                     }
-                    await context.PostAsync(response);
-
-                    this.curQuestion++;
-
-                    await context.PostAsync(this.questions[this.curQuestion].Body);
-                    var choiceStr = "";
-                    var choices = this.questions[this.curQuestion].Choices.Split(';');
-                    for (var i = 0; i < choices.Length; i++)
-                    {
-                        choiceStr += $"[{i}]: {choices[i]}. ";
-                    }
-                    await context.PostAsync(choiceStr);
-                    context.Wait(QuizAsync);
                 }
                 else
                 {
@@ -97,15 +83,27 @@ namespace StudyBud
             var confirm = await argument;
             if (confirm)
             {
-                this.curQuestion = 0;
-                await context.PostAsync("Reset demo.");
-                context.Wait(MessageReceivedAsync);
+                curQuestion = 0;
+                await context.PostAsync("Demo reset.");
+                context.Wait(WaitingOnStartAsync);
             }
             else
             {
-                await context.PostAsync("Did not reset demo.");
+                await context.PostAsync("Demo was not reset.");
                 context.Wait(QuizAsync);
             }
+        }
+
+        private async Task PostQuestion(IDialogContext context, int index)
+        {
+            await context.PostAsync(this.questions[this.curQuestion].Body);
+            var choiceStr = "";
+            var choices = this.questions[this.curQuestion].Choices.Split(';');
+            for (var i = 0; i < choices.Length; i++)
+            {
+                choiceStr += $"[{i}]: {choices[i]}. ";
+            }
+            await context.PostAsync(choiceStr);
         }
     }
 }
