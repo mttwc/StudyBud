@@ -10,6 +10,8 @@ namespace StudyBud
     [Serializable]
     public class EchoDialog : IDialog<object>
     {
+        private int count = 1;
+
         public async Task StartAsync(IDialogContext context)
         {
             context.Wait(MessageReceivedAsync);
@@ -18,7 +20,33 @@ namespace StudyBud
         public async Task MessageReceivedAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            await context.PostAsync($"You said: {message.Text}");
+            if (message.Text == "reset")
+            {
+                PromptDialog.Confirm(
+                    context,
+                    AfterResetAsync,
+                    "Are you sure you want to reset the count?",
+                    "Didn't get that!");
+            }
+            else
+            {
+                await context.PostAsync($"{this.count++}: You said: {message.Text}");
+                context.Wait(MessageReceivedAsync);
+            }
+        }
+
+        public async Task AfterResetAsync(IDialogContext context, IAwaitable<bool> argument)
+        {
+            var confirm = await argument;
+            if (confirm)
+            {
+                this.count = 1;
+                await context.PostAsync("Reset count.");
+            }
+            else
+            {
+                await context.PostAsync("Did not reset count.");
+            }
             context.Wait(MessageReceivedAsync);
         }
     }
