@@ -9,9 +9,9 @@ namespace StudyBud.Persistence
     {
         public static List<T> Parse<T>(string path)
         {
-            using (TextReader tr = File.OpenText(path))
+            using (var reader = File.OpenText(path))
             {
-                var cr = new CsvReader(tr);
+                var cr = new CsvReader(reader);
                 var records = cr.GetRecords<T>().ToList();
                 return records;
             }
