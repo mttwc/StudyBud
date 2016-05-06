@@ -130,7 +130,7 @@ namespace StudyBud
                     }
                     else
                     {
-                        response += $"The actual answer is: {this.questions[curQuestion].Answer}";
+                        response += $"The actual answer is: [{this.questions[curQuestion].Answer}] ({this.questions[curQuestion].Choices.Split(';')[int.Parse(this.questions[curQuestion].Answer)]})";
                     }
 
                     await context.PostAsync(response);
