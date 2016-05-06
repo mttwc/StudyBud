@@ -61,6 +61,7 @@ namespace StudyBud
 
                     if (curQuestion == questions.Count - 1)
                     {
+                        curQuestion = 0;
                         await context.PostAsync("You have completed the demo! Type 'start' to begin the quiz again!");
                         context.Wait(WaitingOnStartAsync);
                     }
@@ -97,11 +98,11 @@ namespace StudyBud
         private async Task PostQuestion(IDialogContext context, int index)
         {
             await context.PostAsync(this.questions[this.curQuestion].Body);
-            var choiceStr = "";
+            var choiceStr = "Enter the number of the answer you wish to select.";
             var choices = this.questions[this.curQuestion].Choices.Split(';');
             for (var i = 0; i < choices.Length; i++)
             {
-                choiceStr += $"[{i}]: {choices[i]}. ";
+                choiceStr += $"\n\nAnswer [{i}]: {choices[i]}.";
             }
             await context.PostAsync(choiceStr);
         }
