@@ -6,6 +6,6 @@ Id,Body,Choices,Answer,Rating,Subject
 105,There are 44 students in a class. Every student plays at least 1 of the 2 sports: baseball and soccer. 27 students play baseball only. 11 students play both baseball and soccer.  How many students play only soccer? ,17;6;38;16,1,Easy,Math
 106,How many bones are in an adult human body?,189;250;206;300,2,Hard,Science
 107,What was Earth's earliest atmosphere formed by?,Animals breathing;Global warming;Plants decaying;Volcanic activity,3,Hard,Science
-108,"In terms of attributed human deaths, which are more dangerous?",Snakes;Bees;Sharks;House flies,3,Hard,Science
+108,"Which of the following is attributed to the most human deaths?",Snakes;Bees;Sharks;House flies,3,Hard,Science
 109,How old is our Sun?,10 billion yrs;5 billion yrs;4 billion yrs;1 billion yrs,1,Hard,Science
 110,Which of these is a noble gas?,Carbon dioxiode;Nitrogen;Argon;Oxygen,2,Hard,Science
