@@ -165,9 +165,9 @@ namespace StudyBud
         public async Task GetFeedbackForQuestionAsync(IDialogContext context)
         {
             string feedbackPrompt = "Did you like that question?";
-            feedbackPrompt += "\n\n[Yes] - 👍";
-            feedbackPrompt += "\n\n[No] - 👎";
-            feedbackPrompt += "\n\n[X] - I prefer not to answer.";
+            feedbackPrompt += "\n\nChoice [A]: 👍";
+            feedbackPrompt += "\n\nChoice [B]: 👎";
+            feedbackPrompt += "\n\nChoice [C]: I prefer not to answer.";
             await context.PostAsync(feedbackPrompt);
             context.Wait(WaitingOnFeedbackAsync);
         }
@@ -176,17 +176,17 @@ namespace StudyBud
         {
             var message = await argument;
             var input = message.Text.ToLower();
-            if (input.Equals("y") || input.Equals("yes"))
+            if (input.Equals("a"))
             {
                 await context.PostAsync("Thank you for your input!");
                 await PrepareNextQuestionAsync(context);
             }
-            else if (input.Equals("n") || input.Equals("no"))
+            else if (input.Equals("b"))
             {
                 await context.PostAsync("Thank you for your input!");
                 await PrepareNextQuestionAsync(context);
             }
-            else if (input.Equals("x"))
+            else if (input.Equals("c"))
             {
                 await PrepareNextQuestionAsync(context);
             }
