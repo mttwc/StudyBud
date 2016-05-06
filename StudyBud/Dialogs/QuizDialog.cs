@@ -1,7 +1,6 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using StudyBud.Model;
-using StudyBud.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,12 +10,16 @@ namespace StudyBud
     [Serializable]
     public class QuizDialog : IDialog<object>
     {
-        private List<Question> questions;
+        private QuestionBag questionBag;
         private int curQuestion = 0;
+
+        private string curSubject;
+        private string curDifficulty;
+        private List<Question> questions;
 
         public async Task StartAsync(IDialogContext context)
         {
-            questions = Parser.Parse<Question>(@"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv");
+            questionBag = new QuestionBag(@"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv");
             context.Wait(WaitingOnStartAsync);
         }
 
@@ -25,15 +28,63 @@ namespace StudyBud
             var message = await argument;
             if (message.Text == "start")
             {
-                await context.PostAsync("Let the quiz begin!");
-                await PostQuestion(context, curQuestion);
+                var subjectsStr = "Let the quiz begin! Please pick a subject:";
+                var subjects = questionBag.Subjects;
+                foreach (var subject in subjects)
+                {
+                    subjectsStr += $"\n\nChoose [{subject}]";
+                }
+                await context.PostAsync(subjectsStr);
 
-                context.Wait(QuizAsync);
+                context.Wait(ChooseSubjectAsync);
             }
             else
             {
                 await context.PostAsync("Type 'start' to begin the quiz!");
                 context.Wait(WaitingOnStartAsync);
+            }
+        }
+
+        public async Task ChooseSubjectAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+
+            if (questionBag.Subjects.Contains(message.Text))
+            {
+                curSubject = message.Text;
+
+                var difficultiesStr = "Please pick a difficulty:";
+                var difficulties = questionBag.GetDifficulties(message.Text);
+                foreach (var difficulty in difficulties)
+                {
+                    difficultiesStr += $"\n\nChoose [{difficulty}]";
+                }
+                await context.PostAsync(difficultiesStr);
+
+                context.Wait(ChooseDifficultyAsync);
+            }
+            else
+            {
+                await context.PostAsync("Sorry, that subject does not exist. Please try again.");
+                context.Wait(ChooseSubjectAsync);
+            }
+        }
+
+        public async Task ChooseDifficultyAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+
+            if (questionBag.GetDifficulties(curSubject).Contains(message.Text))
+            {
+                curDifficulty = message.Text;
+                questions = questionBag.GetQuestions(curSubject, curDifficulty);
+                await PostQuestion(context, curQuestion);
+                context.Wait(QuizAsync);
+            }
+            else
+            {
+                await context.PostAsync($"Sorry, that subject does not exist for subject {curSubject}. Please try again.");
+                context.Wait(ChooseDifficultyAsync);
             }
         }
 
@@ -105,6 +156,13 @@ namespace StudyBud
                 choiceStr += $"\n\nAnswer [{i}]: {choices[i]}.";
             }
             await context.PostAsync(choiceStr);
+        }
+
+        private void ResetState()
+        {
+            curQuestion = 0;
+            curSubject = null;
+            curDifficulty = null;
         }
     }
 }
