@@ -30,11 +30,11 @@ namespace StudyBud
             var message = await argument;
             if (message.Text == "Start")
             {
-                var subjectsStr = "Let the quiz begin! Please pick a subject:";
+                var subjectsStr = "**Let the quiz begin! Please pick a subject:**";
                 var subjects = questionBag.Subjects;
                 foreach (var subject in subjects)
                 {
-                    subjectsStr += $"\n\nChoose [{subject}]";
+                    subjectsStr += $"\n\nChoose [**{subject}**]";
                 }
                 await context.PostAsync(subjectsStr);
 
@@ -42,7 +42,7 @@ namespace StudyBud
             }
             else
             {
-                await context.PostAsync("Type [Start] to begin the quiz!");
+                await context.PostAsync("Type [**Start**] to begin the quiz!");
                 context.Wait(WaitingOnStartAsync);
             }
         }
@@ -63,11 +63,11 @@ namespace StudyBud
             {
                 curSubject = message.Text;
 
-                var difficultiesStr = "Please pick a difficulty:";
+                var difficultiesStr = "**Please pick a difficulty:**";
                 var difficulties = questionBag.GetDifficulties(message.Text);
                 foreach (var difficulty in difficulties)
                 {
-                    difficultiesStr += $"\n\nChoose [{difficulty}]";
+                    difficultiesStr += $"\n\nChoose [**{difficulty}**]";
                 }
                 await context.PostAsync(difficultiesStr);
 
@@ -127,14 +127,14 @@ namespace StudyBud
                     var response = $"You selected: {choiceAsChar}. ";
                     if (choice == int.Parse(this.questions[curQuestion].Answer))
                     {
-                        response += "That is correct! " + PraiseBag.GetRandomPraise();
+                        response += "**That is correct! " + PraiseBag.GetRandomPraise() + "**";
                         correctAnswers++;
                     }
                     else
                     {
                         int actualAnswerAsInt = int.Parse(this.questions[curQuestion].Answer);
                         char actualAsnwerAsChar = (char)(actualAnswerAsInt + 65);
-                        response += $"The actual answer is: [{actualAsnwerAsChar}] ({this.questions[curQuestion].Choices.Split(';')[actualAnswerAsInt]})";
+                        response += $"**The actual answer is: {actualAsnwerAsChar}** ({this.questions[curQuestion].Choices.Split(';')[actualAnswerAsInt]})";
                     }
                     await context.PostAsync(response);
 
@@ -152,23 +152,23 @@ namespace StudyBud
 
         private async Task PostQuestion(IDialogContext context, int index)
         {
-            await context.PostAsync(this.questions[this.curQuestion].Body);
-            var choiceStr = "Enter the letter of the answer you wish to select.";
+            await context.PostAsync("**" + this.questions[this.curQuestion].Body + "**");
+            var choiceStr = "**Enter the letter of the answer you wish to select.**";
             var choices = this.questions[this.curQuestion].Choices.Split(';');
             for (var i = 0; i < choices.Length; i++)
             {
                 char answerAsChar = (char)(i + 65);
-                choiceStr += $"\n\nAnswer [{answerAsChar}]: {choices[i]}.";
+                choiceStr += $"\n\nAnswer [**{answerAsChar}**]: {choices[i]}.";
             }
             await context.PostAsync(choiceStr);
         }
 
         public async Task GetFeedbackForQuestionAsync(IDialogContext context)
         {
-            string feedbackPrompt = "Did you like that question?";
-            feedbackPrompt += "\n\nChoice [A]: 👍";
-            feedbackPrompt += "\n\nChoice [B]: 👎";
-            feedbackPrompt += "\n\nChoice [C]: I prefer not to answer.";
+            string feedbackPrompt = "**Did you like that question?**";
+            feedbackPrompt += "\n\nChoice [**A**]: 👍";
+            feedbackPrompt += "\n\nChoice [**B**]: 👎";
+            feedbackPrompt += "\n\nChoice [**C**]: I prefer not to answer.";
             await context.PostAsync(feedbackPrompt);
             context.Wait(WaitingOnFeedbackAsync);
         }
@@ -213,7 +213,7 @@ namespace StudyBud
 
         public async Task ScorecardAsync(IDialogContext context)
         {
-            var scorecard = $"You answered {curQuestion} questions and got {correctAnswers} correct!";
+            var scorecard = $"**You answered {curQuestion} questions and got {correctAnswers} correct!**";
             await context.PostAsync(scorecard);
             await AfterResetAsync(context);
         }
@@ -222,7 +222,7 @@ namespace StudyBud
         {
             ResetState();
             await context.PostAsync("Demo reset.");
-            await context.PostAsync("Type [Start] to begin the quiz!");
+            await context.PostAsync("Type [**Start**] to begin the quiz!");
             context.Wait(WaitingOnStartAsync);
         }
 
