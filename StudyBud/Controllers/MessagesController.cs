@@ -38,6 +38,10 @@ namespace StudyBud
             }
             else if (message.Type == "BotAddedToConversation")
             {
+                var replyStr = "Hi there! Please type one of the following options to interact with me!";
+                replyStr += "\n\n'start' - begins the demo quiz.";
+                replyStr += "\n\n'add' - begins the wizard to add a question to the database.";
+                return message.CreateReplyMessage(replyStr);
             }
             else if (message.Type == "BotRemovedFromConversation")
             {
