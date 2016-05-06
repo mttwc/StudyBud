@@ -215,14 +215,39 @@ namespace StudyBud
         {
             var scorecard = $"**You answered {curQuestion} questions and got {correctAnswers} correct!**";
             await context.PostAsync(scorecard);
-            await AfterResetAsync(context);
+
+            var postToOneNoteStr = "**Would you like to post your score card to OneNote?**";
+            postToOneNoteStr += "\n\nChoice [**A**]: Yes";
+            postToOneNoteStr += "\n\nChoice [**B**]: No";
+            await context.PostAsync(postToOneNoteStr);
+
+            context.Wait(WaitingForPostToOneNoteAsync);
+        }
+
+        public async Task WaitingForPostToOneNoteAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+            var input = message.Text.ToLower();
+            if (input.Equals("a"))
+            {
+                await context.PostAsync("Done!");
+                await AfterResetAsync(context);
+            }
+            else if (input.Equals("b"))
+            {
+                await AfterResetAsync(context);
+            }
+            else
+            {
+                await context.PostAsync("Sorry, that was not a valid response.");
+                context.Wait(WaitingForPostToOneNoteAsync);
+            }
         }
 
         public async Task AfterResetAsync(IDialogContext context)
         {
             ResetState();
-            await context.PostAsync("Demo reset.");
-            await context.PostAsync("Type [**Start**] to begin the quiz!");
+            await context.PostAsync("Demo reset. Type [**Start**] to begin the quiz!");
             context.Wait(WaitingOnStartAsync);
         }
 
