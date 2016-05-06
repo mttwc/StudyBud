@@ -3,7 +3,6 @@ using Microsoft.Bot.Connector;
 using StudyBud.Model;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace StudyBud
@@ -132,8 +131,9 @@ namespace StudyBud
                     {
                         response += $"The actual answer is: [{this.questions[curQuestion].Answer}] ({this.questions[curQuestion].Choices.Split(';')[int.Parse(this.questions[curQuestion].Answer)]})";
                     }
-
                     await context.PostAsync(response);
+
+                    this.curQuestion++;
 
                     if (curQuestion == questions.Count - 1)
                     {
@@ -141,7 +141,7 @@ namespace StudyBud
                     }
                     else
                     {
-                        await PostQuestion(context, ++this.curQuestion);
+                        await PostQuestion(context, this.curQuestion);
                         context.Wait(QuizAsync);
                     }
                 }
