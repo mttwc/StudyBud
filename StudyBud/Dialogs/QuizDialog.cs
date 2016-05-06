@@ -1,6 +1,7 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using StudyBud.Model;
+using StudyBud.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -126,7 +127,7 @@ namespace StudyBud
                     var response = $"You selected: {choiceAsChar}. ";
                     if (choice == int.Parse(this.questions[curQuestion].Answer))
                     {
-                        response += "That is correct!";
+                        response += "That is correct! " + PraiseBag.GetRandomPraise();
                         correctAnswers++;
                     }
                     else
