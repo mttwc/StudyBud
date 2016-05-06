@@ -118,10 +118,12 @@ namespace StudyBud
             }
             else
             {
-                int choice;
-                if (int.TryParse(message.Text, out choice))
+                if (message.Text.Length == 1 && char.IsLetter(message.Text[0]))
                 {
-                    var response = $"You selected: {choice}. ";
+                    char choiceAsChar = char.ToUpper(message.Text[0]);
+                    int choice = choiceAsChar - 65;
+
+                    var response = $"You selected: {choiceAsChar}. ";
                     if (choice == int.Parse(this.questions[curQuestion].Answer))
                     {
                         response += "That is correct!";
@@ -129,25 +131,19 @@ namespace StudyBud
                     }
                     else
                     {
-                        response += $"The actual answer is: [{this.questions[curQuestion].Answer}] ({this.questions[curQuestion].Choices.Split(';')[int.Parse(this.questions[curQuestion].Answer)]})";
+                        int actualAnswerAsInt = int.Parse(this.questions[curQuestion].Answer);
+                        char actualAsnwerAsChar = (char)(actualAnswerAsInt + 65);
+                        response += $"The actual answer is: [{actualAsnwerAsChar}] ({this.questions[curQuestion].Choices.Split(';')[actualAnswerAsInt]})";
                     }
                     await context.PostAsync(response);
 
                     this.curQuestion++;
 
-                    if (curQuestion == questions.Count - 1)
-                    {
-                        await ScorecardAsync(context);
-                    }
-                    else
-                    {
-                        await PostQuestion(context, this.curQuestion);
-                        context.Wait(QuizAsync);
-                    }
+                    await GetFeedbackForQuestionAsync(context);
                 }
                 else
                 {
-                    await context.PostAsync("Please type in the number of the answer you wish to select.");
+                    await context.PostAsync("Please type in the letter of the answer you wish to select.");
                     context.Wait(QuizAsync);
                 }
             }
@@ -156,13 +152,62 @@ namespace StudyBud
         private async Task PostQuestion(IDialogContext context, int index)
         {
             await context.PostAsync(this.questions[this.curQuestion].Body);
-            var choiceStr = "Enter the number of the answer you wish to select.";
+            var choiceStr = "Enter the letter of the answer you wish to select.";
             var choices = this.questions[this.curQuestion].Choices.Split(';');
             for (var i = 0; i < choices.Length; i++)
             {
-                choiceStr += $"\n\nAnswer [{i}]: {choices[i]}.";
+                char answerAsChar = (char)(i + 65);
+                choiceStr += $"\n\nAnswer [{answerAsChar}]: {choices[i]}.";
             }
             await context.PostAsync(choiceStr);
+        }
+
+        public async Task GetFeedbackForQuestionAsync(IDialogContext context)
+        {
+            string feedbackPrompt = "Did you like that question?";
+            feedbackPrompt += "\n\n[Yes] - 👍";
+            feedbackPrompt += "\n\n[No] - 👎";
+            feedbackPrompt += "\n\n[X] - I prefer not to answer.";
+            await context.PostAsync(feedbackPrompt);
+            context.Wait(WaitingOnFeedbackAsync);
+        }
+
+        public async Task WaitingOnFeedbackAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+            var input = message.Text.ToLower();
+            if (input.Equals("y") || input.Equals("yes"))
+            {
+                await context.PostAsync("Thank you for your input!");
+                await PrepareNextQuestionAsync(context);
+            }
+            else if (input.Equals("n") || input.Equals("no"))
+            {
+                await context.PostAsync("Thank you for your input!");
+                await PrepareNextQuestionAsync(context);
+            }
+            else if (input.Equals("x"))
+            {
+                await PrepareNextQuestionAsync(context);
+            }
+            else
+            {
+                await context.PostAsync("Sorry, that was not a valid response.");
+                context.Wait(WaitingOnFeedbackAsync);
+            }
+        }
+
+        public async Task PrepareNextQuestionAsync(IDialogContext context)
+        {
+            if (curQuestion == questions.Count - 1)
+            {
+                await ScorecardAsync(context);
+            }
+            else
+            {
+                await PostQuestion(context, this.curQuestion);
+                context.Wait(QuizAsync);
+            }
         }
 
         public async Task ScorecardAsync(IDialogContext context)

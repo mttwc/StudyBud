@@ -40,7 +40,7 @@ namespace StudyBud
             {
                 var replyStr = "Hi there! Please type one of the following options to interact with me!";
                 replyStr += "\n\n[Start] - begins the demo quiz.";
-                replyStr += "\n\n[Add] - begins the wizard to add a question to the database.";
+                //replyStr += "\n\n[Add] - begins the wizard to add a question to the database.";
                 return message.CreateReplyMessage(replyStr);
             }
             else if (message.Type == "BotRemovedFromConversation")
