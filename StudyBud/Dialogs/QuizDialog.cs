@@ -13,6 +13,7 @@ namespace StudyBud
     {
         private QuestionBag questionBag;
         private int curQuestion = 0;
+        private int correctAnswers = 0;
 
         private string curSubject;
         private string curDifficulty;
@@ -54,6 +55,10 @@ namespace StudyBud
             {
                 await AfterResetAsync(context);
             }
+            else if (message.Text == "End")
+            {
+                await ScorecardAsync(context);
+            }
             else if (questionBag.Subjects.Contains(message.Text))
             {
                 curSubject = message.Text;
@@ -83,6 +88,10 @@ namespace StudyBud
             {
                 await AfterResetAsync(context);
             }
+            else if (message.Text == "End")
+            {
+                await ScorecardAsync(context);
+            }
             else if (questionBag.GetDifficulties(curSubject).Contains(message.Text))
             {
                 curDifficulty = message.Text;
@@ -104,22 +113,31 @@ namespace StudyBud
             {
                 await AfterResetAsync(context);
             }
+            else if (message.Text == "End")
+            {
+                await ScorecardAsync(context);
+            }
             else
             {
                 int choice;
                 if (int.TryParse(message.Text, out choice))
                 {
                     var response = $"You selected: {choice}. ";
-                    response += choice == int.Parse(this.questions[curQuestion].Answer) ?
-                        "That is correct!" :
+                    if (choice == int.Parse(this.questions[curQuestion].Answer))
+                    {
+                        response += "That is correct!";
+                        correctAnswers++;
+                    }
+                    else
+                    {
                         response += $"The actual answer is: {this.questions[curQuestion].Answer}";
+                    }
+
                     await context.PostAsync(response);
 
                     if (curQuestion == questions.Count - 1)
                     {
-                        curQuestion = 0;
-                        await context.PostAsync("You have completed the demo! Type [Start] to begin the quiz again!");
-                        context.Wait(WaitingOnStartAsync);
+                        await ScorecardAsync(context);
                     }
                     else
                     {
@@ -147,6 +165,13 @@ namespace StudyBud
             await context.PostAsync(choiceStr);
         }
 
+        public async Task ScorecardAsync(IDialogContext context)
+        {
+            var scorecard = $"You answered {curQuestion} questions and got {correctAnswers} correct!";
+            await context.PostAsync(scorecard);
+            await AfterResetAsync(context);
+        }
+
         public async Task AfterResetAsync(IDialogContext context)
         {
             ResetState();
@@ -158,6 +183,7 @@ namespace StudyBud
         private void ResetState()
         {
             curQuestion = 0;
+            correctAnswers = 0;
             curSubject = null;
             curDifficulty = null;
             questions = null;
