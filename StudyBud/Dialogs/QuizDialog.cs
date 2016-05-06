@@ -3,6 +3,7 @@ using Microsoft.Bot.Connector;
 using StudyBud.Model;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace StudyBud
@@ -49,7 +50,11 @@ namespace StudyBud
         {
             var message = await argument;
 
-            if (questionBag.Subjects.Contains(message.Text))
+            if (message.Text == "Reset")
+            {
+                await AfterResetAsync(context);
+            }
+            else if (questionBag.Subjects.Contains(message.Text))
             {
                 curSubject = message.Text;
 
@@ -74,7 +79,11 @@ namespace StudyBud
         {
             var message = await argument;
 
-            if (questionBag.GetDifficulties(curSubject).Contains(message.Text))
+            if (message.Text == "Reset")
+            {
+                await AfterResetAsync(context);
+            }
+            else if (questionBag.GetDifficulties(curSubject).Contains(message.Text))
             {
                 curDifficulty = message.Text;
                 questions = questionBag.GetQuestions(curSubject, curDifficulty);
@@ -91,13 +100,9 @@ namespace StudyBud
         public async Task QuizAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            if (message.Text == "reset")
+            if (message.Text == "Reset")
             {
-                PromptDialog.Confirm(
-                    context,
-                    AfterResetAsync,
-                    "Are you sure you want to reset the demo?",
-                    "Didn't get that!");
+                await AfterResetAsync(context);
             }
             else
             {
@@ -130,22 +135,6 @@ namespace StudyBud
             }
         }
 
-        public async Task AfterResetAsync(IDialogContext context, IAwaitable<bool> argument)
-        {
-            var confirm = await argument;
-            if (confirm)
-            {
-                curQuestion = 0;
-                await context.PostAsync("Demo reset.");
-                context.Wait(WaitingOnStartAsync);
-            }
-            else
-            {
-                await context.PostAsync("Demo was not reset.");
-                context.Wait(QuizAsync);
-            }
-        }
-
         private async Task PostQuestion(IDialogContext context, int index)
         {
             await context.PostAsync(this.questions[this.curQuestion].Body);
@@ -158,11 +147,20 @@ namespace StudyBud
             await context.PostAsync(choiceStr);
         }
 
+        public async Task AfterResetAsync(IDialogContext context)
+        {
+            ResetState();
+            await context.PostAsync("Demo reset.");
+            await context.PostAsync("Type [Start] to begin the quiz!");
+            context.Wait(WaitingOnStartAsync);
+        }
+
         private void ResetState()
         {
             curQuestion = 0;
             curSubject = null;
             curDifficulty = null;
+            questions = null;
         }
     }
 }
