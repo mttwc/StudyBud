@@ -26,7 +26,7 @@ namespace StudyBud
         public async Task WaitingOnStartAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            if (message.Text == "start")
+            if (message.Text == "Start")
             {
                 var subjectsStr = "Let the quiz begin! Please pick a subject:";
                 var subjects = questionBag.Subjects;
@@ -40,7 +40,7 @@ namespace StudyBud
             }
             else
             {
-                await context.PostAsync("Type 'start' to begin the quiz!");
+                await context.PostAsync("Type [Start] to begin the quiz!");
                 context.Wait(WaitingOnStartAsync);
             }
         }
@@ -113,7 +113,7 @@ namespace StudyBud
                     if (curQuestion == questions.Count - 1)
                     {
                         curQuestion = 0;
-                        await context.PostAsync("You have completed the demo! Type 'start' to begin the quiz again!");
+                        await context.PostAsync("You have completed the demo! Type [Start] to begin the quiz again!");
                         context.Wait(WaitingOnStartAsync);
                     }
                     else
