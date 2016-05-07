@@ -28,7 +28,7 @@ namespace StudyBud
         public async Task WaitingOnStartAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            if (message.Text == "Start")
+            if (message.Text.ToLower() == "start")
             {
                 var subjectsStr = "**Let the quiz begin! Please pick a subject:**";
                 var subjects = questionBag.Subjects;
@@ -50,21 +50,22 @@ namespace StudyBud
         public async Task ChooseSubjectAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
+            var capitalized = message.Text.Substring(0, 1).ToUpper() + message.Text.Substring(1).ToLower();
 
-            if (message.Text == "Reset")
+            if (message.Text.ToLower() == "reset")
             {
                 await AfterResetAsync(context);
             }
-            else if (message.Text == "End")
+            else if (message.Text.ToLower() == "end")
             {
                 await ScorecardAsync(context);
             }
-            else if (questionBag.Subjects.Contains(message.Text))
+            else if (questionBag.Subjects.Contains(capitalized))
             {
-                curSubject = message.Text;
+                curSubject = capitalized;
 
                 var difficultiesStr = "**Please pick a difficulty:**";
-                var difficulties = questionBag.GetDifficulties(message.Text);
+                var difficulties = questionBag.GetDifficulties(curSubject);
                 foreach (var difficulty in difficulties)
                 {
                     difficultiesStr += $"\n\nChoose [**{difficulty}**]";
@@ -83,18 +84,19 @@ namespace StudyBud
         public async Task ChooseDifficultyAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
+            var capitalized = message.Text.Substring(0, 1).ToUpper() + message.Text.Substring(1).ToLower();
 
-            if (message.Text == "Reset")
+            if (message.Text.ToLower() == "reset")
             {
                 await AfterResetAsync(context);
             }
-            else if (message.Text == "End")
+            else if (message.Text.ToLower() == "end")
             {
                 await ScorecardAsync(context);
             }
-            else if (questionBag.GetDifficulties(curSubject).Contains(message.Text))
+            else if (questionBag.GetDifficulties(curSubject).Contains(capitalized))
             {
-                curDifficulty = message.Text;
+                curDifficulty = capitalized;
                 questions = questionBag.GetQuestions(curSubject, curDifficulty);
                 await PostQuestion(context, curQuestion);
                 context.Wait(QuizAsync);
@@ -109,11 +111,11 @@ namespace StudyBud
         public async Task QuizAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            if (message.Text == "Reset")
+            if (message.Text.ToLower() == "reset")
             {
                 await AfterResetAsync(context);
             }
-            else if (message.Text == "End")
+            else if (message.Text.ToLower() == "end")
             {
                 await ScorecardAsync(context);
             }
@@ -213,7 +215,7 @@ namespace StudyBud
 
         public async Task ScorecardAsync(IDialogContext context)
         {
-            var scorecard = $"**You answered {curQuestion} questions and got {correctAnswers} correct!**";
+            var scorecard = $"***You answered {curQuestion} questions and got {correctAnswers} correct!***";
             await context.PostAsync(scorecard);
 
             var postToOneNoteStr = "**Would you like to post your score card to OneNote?**";
