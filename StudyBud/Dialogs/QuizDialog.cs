@@ -17,7 +17,7 @@ namespace StudyBud
 
         private string curSubject;
         private string curDifficulty;
-        private List<Question> questions;
+        private IList<Question> questions;
 
         public async Task StartAsync(IDialogContext context)
         {

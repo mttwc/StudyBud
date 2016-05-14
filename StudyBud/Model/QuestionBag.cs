@@ -8,8 +8,8 @@ namespace StudyBud.Model
     [Serializable]
     public class QuestionBag
     {
-        private IDictionary<string, List<string>> difficultiesPerSubject;
-        private IDictionary<string, List<Question>> questionsPerSubject;
+        private IDictionary<string, IList<string>> difficultiesPerSubject;
+        private IDictionary<string, IList<Question>> questionsPerSubject;
 
         public ICollection<string> Subjects
         {
@@ -19,10 +19,10 @@ namespace StudyBud.Model
 
         public QuestionBag(string path)
         {
-            var questions = Parser.Parse<Question>(@"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv");
+            var questions = Parser.Parse<Question>(path);
 
-            difficultiesPerSubject = new Dictionary<string, List<string>>();
-            questionsPerSubject = new Dictionary<string, List<Question>>();
+            difficultiesPerSubject = new Dictionary<string, IList<string>>();
+            questionsPerSubject = new Dictionary<string, IList<Question>>();
 
             foreach (var question in questions)
             {
@@ -41,17 +41,17 @@ namespace StudyBud.Model
             Subjects = difficultiesPerSubject.Keys;
         }
 
-        public List<string> GetDifficulties(string subject)
+        public IList<string> GetDifficulties(string subject)
         {
             return difficultiesPerSubject[subject];
         }
 
-        public List<Question> GetQuestions(string subject)
+        public IList<Question> GetQuestions(string subject)
         {
             return questionsPerSubject[subject];
         }
 
-        public List<Question> GetQuestions(string subject, string difficulty)
+        public IList<Question> GetQuestions(string subject, string difficulty)
         {
             return GetQuestions(subject).Where(q => q.Rating.Equals(difficulty)).ToList();
         }

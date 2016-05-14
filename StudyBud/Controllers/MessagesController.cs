@@ -14,7 +14,18 @@ namespace StudyBud
         private static IDialog<QuizPicker> MakeQuizPickerDialog()
         {
             return Chain.From(() => FormDialog.FromForm(QuizPicker.BuildForm))
-                        .Loop();
+                        .Do(async (context, selection) =>
+                        {
+                            try
+                            {
+                                var quizPickerResult = await selection;
+                                await context.PostAsync(quizPickerResult.EducationLevel);
+                            }
+                            catch (FormCanceledException<QuizPicker> fce)
+                            {
+                                await context.PostAsync("Quiz canceled");
+                            }
+                        });
         }
 
         public async Task<Message> Post([FromBody]Message message)
