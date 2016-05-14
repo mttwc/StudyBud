@@ -1,6 +1,8 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
+using StudyBud.Forms;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -9,15 +11,18 @@ namespace StudyBud
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        /// <summary>
-        /// POST: api/Messages
-        /// Receive a message from a user and reply to it
-        /// </summary>
+        private static IDialog<QuizPicker> MakeQuizPickerDialog()
+        {
+            return Chain.From(() => FormDialog.FromForm(QuizPicker.BuildForm))
+                        .Loop();
+        }
+
         public async Task<Message> Post([FromBody]Message message)
         {
             if (message.Type == "Message")
             {
-                return await Conversation.SendAsync(message, () => new QuizDialog());
+                //return await Conversation.SendAsync(message, () => new QuizDialog());
+                return await Conversation.SendAsync(message, MakeQuizPickerDialog);
             }
             else
             {
@@ -40,7 +45,6 @@ namespace StudyBud
             {
                 var replyStr = "**Hi there! Please type one of the following options to interact with me!**";
                 replyStr += "\n\n[**Start**]: begins the demo quiz.";
-                //replyStr += "\n\n[Add] - begins the wizard to add a question to the database.";
                 return message.CreateReplyMessage(replyStr);
             }
             else if (message.Type == "BotRemovedFromConversation")
