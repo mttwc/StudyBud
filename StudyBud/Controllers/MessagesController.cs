@@ -28,7 +28,12 @@ namespace StudyBud
                     {
                         await context.PostAsync("Quiz canceled");
                     }
+                    // Need FormOptions.PromptInStart to start next dialog 
                 });
+                //.ContinueWith<bool, QuizPicker>(async (context, item) =>
+                //{
+                //    return await new QuizPicker();
+                //});
         }
 
         public async Task<Message> Post([FromBody]Message message)
