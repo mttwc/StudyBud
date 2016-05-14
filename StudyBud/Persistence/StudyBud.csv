@@ -1,11 +1,12 @@
-Id,Body,Choices,Answer,Rating,Subject
-101,"At Hollister Elementary School, Mrs. Wolfe's 3rd grade students line up in a row. If Matt is # 14 counting from the front of the line, and # 8 counting from the back of the line. How many students are in the line?",22;21;14;8,1,Easy,Math
-102,"Two trains, Train A and Train B, simultaneously depart Station A and Station B. Station A and Station B are 252.5 miles apart from each other. Train A is moving at 124.7mph towards Station B, and Train B is moving at 253.5mph towards Station A. If both trains departed at 10:00AM and it is now 10:08, how much longer until both trains pass each other?",31.054 minutes;16.232 minutes;25.049 minutes;32.058 minutes,3,Easy,Math
-103,"Mrs. Johnston had glue sticks to give to her class of 22 students. After giving each student 3 glue sticks, she still had 3 left. How many glue sticks did Mrs. Johnston have?",66;63;69;28,2,Easy,Math
-104,"Lisa lives on the 9th floor of a building. There are 36 stairs between two connecting floors. How many stairs does Lisa have to climb to reach the 9th floor, starting from the first floor?",324;344;268;288,3,Easy,Math
-105,There are 44 students in a class. Every student plays at least 1 of the 2 sports: baseball and soccer. 27 students play baseball only. 11 students play both baseball and soccer.Ê How many students play only soccer? ,17;6;38;16,1,Easy,Math
-106,How many bones are in an adult human body?,189;250;206;300,2,Hard,Science
-107,What was Earth's earliest atmosphere formed by?,Animals breathing;Global warming;Plants decaying;Volcanic activity,3,Hard,Science
-108,"Which of the following is attributed to the most human deaths?",Snakes;Bees;Sharks;House flies,3,Hard,Science
-109,How old is our Sun?,10 billion yrs;5 billion yrs;4 billion yrs;1 billion yrs,1,Hard,Science
-110,Which of these is a noble gas?,Carbon dioxiode;Nitrogen;Argon;Oxygen,2,Hard,Science
+Id,Body,Choices,Answer,Grade,Subject,Topic
+1,"At Hollister Elementary School, Mrs. Wolfe's 3rd grade students line up in a row. If Matt is # 14 counting from the front of the line, and # 8 counting from the back of the line. How many students are in the line?",22;21;14;8,1,5th Grade,Math,Arithmetic
+2,"Two trains, Train A and Train B, simultaneously depart Station A and Station B. Station A and Station B are 252.5 miles apart from each other. Train A is moving at 124.7mph towards Station B, and Train B is moving at 253.5mph towards Station A. If both trains departed at 10:00AM and it is now 10:08, how much longer until both trains pass each other?",31.054 minutes;16.232 minutes;25.049 minutes;32.058 minutes,3,7th Grade,Math,Arithmetic
+3,"Mrs. Johnston had glue sticks to give to her class of 22 students. After giving each student 3 glue sticks, she still had 3 left. How many glue sticks did Mrs. Johnston have?",66;63;69;28,2,5th Grade,Math,Arithmetic
+4,"Lisa lives on the 9th floor of a building. There are 36 stairs between two connecting floors. How many stairs does Lisa have to climb to reach the 9th floor, starting from the first floor?",324;344;268;288,3,5th Grade,Math,Arithmetic
+5,There are 44 students in a class. Every student plays at least 1 of the 2 sports: baseball and soccer. 27 students play baseball only. 11 students play both baseball and soccer. How many students play only soccer? ,17;6;38;16,1,5th Grade,Math,Arithmetic
+6,How old is our Sun?,10 billion yrs;5 billion yrs;4 billion yrs;1 billion yrs,1,4th Grade,Science,Astronomy
+7,How many bones are in an adult human body?,189;250;206;300,2,4th Grade,Science,Biology
+8,What is Pluto classified as?,Orc planet;Elf planet;Human planet;Dwarf planet,3,4th Grade,Science,Astronomy
+9,Which of the follow planets is closest to the sun?,Mercury;Venus;Earth;Mars,0,4th Grade,Science,Astronomy
+10,Which of the following is attributed to the most human deaths?,Snakes;Bees;Sharks;House flies,3,5th Grade,Science,Medicine
+11,Which of these is a noble gas?,Carbon dioxiode;Nitrogen;Argon;Oxygen,2,4th Grade,Science,Chemistry

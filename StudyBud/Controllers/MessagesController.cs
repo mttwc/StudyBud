@@ -3,6 +3,7 @@ using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
 using StudyBud.Forms;
+using StudyBud.Model;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -14,18 +15,20 @@ namespace StudyBud
         private static IDialog<QuizPicker> MakeQuizPickerDialog()
         {
             return Chain.From(() => FormDialog.FromForm(QuizPicker.BuildForm))
-                        .Do(async (context, selection) =>
-                        {
-                            try
-                            {
-                                var quizPickerResult = await selection;
-                                await context.PostAsync(quizPickerResult.EducationLevel);
-                            }
-                            catch (FormCanceledException<QuizPicker> fce)
-                            {
-                                await context.PostAsync("Quiz canceled");
-                            }
-                        });
+                .Do(async (context, selection) =>
+                {
+                    try
+                    {
+                        var quizPickerResult = await selection;
+                        await context.PostAsync(quizPickerResult.Grade);
+                        await context.PostAsync(quizPickerResult.Subject);
+                        await context.PostAsync(quizPickerResult.Topic);
+                    }
+                    catch (FormCanceledException<QuizPicker> fce)
+                    {
+                        await context.PostAsync("Quiz canceled");
+                    }
+                });
         }
 
         public async Task<Message> Post([FromBody]Message message)

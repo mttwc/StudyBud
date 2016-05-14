@@ -9,7 +9,8 @@ namespace StudyBud.Model
         public string Body { get; set; }
         public string Choices { get; set; }
         public string Answer { get; set; }
-        public string Rating { get; set; }
+        public string Grade { get; set; }
         public string Subject { get; set; }
+        public string Topic { get; set; }
     }
 }

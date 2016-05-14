@@ -5,55 +5,53 @@ using System.Linq;
 
 namespace StudyBud.Model
 {
+    /// <summary>
+    /// A placeholder fake DAO that points to a CSV file on Matthew's laptop.
+    /// </summary>
     [Serializable]
     public class QuestionBag
     {
-        private IDictionary<string, IList<string>> difficultiesPerSubject;
-        private IDictionary<string, IList<Question>> questionsPerSubject;
+        private static QuestionBag instance;
 
-        public ICollection<string> Subjects
-        {
-            get;
-            private set;
-        }
+        // Not even a relative path, what a joke!
+        private static string path = @"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv";
 
-        public QuestionBag(string path)
-        {
-            var questions = Parser.Parse<Question>(path);
-
-            difficultiesPerSubject = new Dictionary<string, IList<string>>();
-            questionsPerSubject = new Dictionary<string, IList<Question>>();
-
-            foreach (var question in questions)
+        public static QuestionBag Instance {
+            get
             {
-                if (!difficultiesPerSubject.Keys.Contains(question.Subject))
+                if (instance == null)
                 {
-                    difficultiesPerSubject.Add(question.Subject, new List<string>());
-                    questionsPerSubject.Add(question.Subject, new List<Question>());
+                    instance = new QuestionBag(path);
                 }
-
-                if (!difficultiesPerSubject[question.Subject].Contains(question.Rating))
-                {
-                    difficultiesPerSubject[question.Subject].Add(question.Rating);
-                }
-                questionsPerSubject[question.Subject].Add(question);
+                return instance;
             }
-            Subjects = difficultiesPerSubject.Keys;
         }
 
-        public IList<string> GetDifficulties(string subject)
+        private IList<Question> questions;
+
+        private QuestionBag(string path)
         {
-            return difficultiesPerSubject[subject];
+            questions = Parser.Parse<Question>(path);
         }
 
-        public IList<Question> GetQuestions(string subject)
+        public IList<string> GetGrades()
         {
-            return questionsPerSubject[subject];
+            return questions.Select(q => q.Grade).Distinct().OrderBy(g => g).ToList();
         }
 
-        public IList<Question> GetQuestions(string subject, string difficulty)
+        public IList<string> GetSubjects(string grade)
         {
-            return GetQuestions(subject).Where(q => q.Rating.Equals(difficulty)).ToList();
+            return questions.Where(q => q.Grade.Equals(grade)).Select(q => q.Subject).Distinct().OrderBy(s => s).ToList();
+        }
+
+        public IList<string> GetTopics(string grade, string subject)
+        {
+            return questions.Where(q => q.Grade.Equals(grade) && q.Subject.Equals(subject)).Select(q => q.Topic).Distinct().OrderBy(t => t).ToList();
+        }
+
+        public IList<Question> GetQuestions(string grade, string subject, string topic)
+        {
+            return questions.Where(q => q.Grade.Equals(grade) && q.Subject.Equals(subject) && q.Topic.Equals(topic)).OrderBy(q => q.Id).ToList();
         }
     }
 }

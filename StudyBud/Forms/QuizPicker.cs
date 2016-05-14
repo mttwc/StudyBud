@@ -4,6 +4,7 @@ using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow.Advanced;
 using System.Threading.Tasks;
+using StudyBud.Model;
 
 namespace StudyBud.Forms
 {
@@ -12,7 +13,9 @@ namespace StudyBud.Forms
     [Template(TemplateUsage.EnumSelectOne, "Please select a {&}. {||}", ChoiceStyle = ChoiceStyleOptions.PerLine)]
     public class QuizPicker
     {
-        public string EducationLevel { get; set; }
+        private static QuestionBag questionBag = QuestionBag.Instance;
+
+        public string Grade { get; set; }
         public string Subject { get; set; }
         public string Topic { get; set; }
 
@@ -20,11 +23,11 @@ namespace StudyBud.Forms
         {
             return new FormBuilder<QuizPicker>()
                 .Message("Starting a quiz!")
-                .Field(new FieldReflector<QuizPicker>(nameof(EducationLevel))
+                .Field(new FieldReflector<QuizPicker>(nameof(Grade))
                     .SetType(null)
                     .SetDefine((state, field) =>
                     {
-                        foreach (var educationLevel in GetEducationLevels())
+                        foreach (var educationLevel in questionBag.GetGrades())
                             field
                                 .AddDescription(educationLevel, educationLevel)
                                 .AddTerms(educationLevel, educationLevel);
@@ -34,7 +37,7 @@ namespace StudyBud.Forms
                     .SetType(null)
                     .SetDefine((state, field) =>
                     {
-                        foreach (var subject in GetSubjects(state.EducationLevel))
+                        foreach (var subject in questionBag.GetSubjects(state.Grade))
                         {
                             field
                                 .AddDescription(subject, subject)
@@ -46,7 +49,7 @@ namespace StudyBud.Forms
                     .SetType(null)
                     .SetDefine((state, field) =>
                     {
-                        foreach (var topic in GetTopics(state.EducationLevel, state.Subject))
+                        foreach (var topic in questionBag.GetTopics(state.Grade, state.Subject))
                         {
                             field
                                 .AddDescription(topic, topic)
@@ -59,33 +62,6 @@ namespace StudyBud.Forms
                     await context.PostAsync("Your selection is complete! Give me a second while I get your quiz ready ...");
                 })
                 .Build();
-        }
-
-        static IList<string> GetEducationLevels()
-        {
-            return new List<string>
-            {
-                "1st Grade",
-                "2nd Grade",
-                "3rd Grade"
-            };
-        }
-
-        static IList<string> GetSubjects(string educationLevel)
-        {
-            return new List<string>
-            {
-                "Math",
-                "Science"
-            };
-        }
-
-        static IList<string> GetTopics(string educationLevel, string subject)
-        {
-            return new List<string>
-            {
-                "Placeholder"
-            };
         }
     }
 }
