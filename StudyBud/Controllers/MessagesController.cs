@@ -12,6 +12,18 @@ namespace StudyBud
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        public async Task<Message> Post([FromBody]Message message)
+        {
+            if (message.Type == "Message")
+            {
+                return await Conversation.SendAsync(message, MakeDialog);
+            }
+            else
+            {
+                return HandleSystemMessage(message);
+            }
+        }
+
         private static IDialog<object> MakeDialog()
         {
             return Chain
@@ -49,18 +61,6 @@ namespace StudyBud
                     }))
                 .Unwrap()
                 .PostToUser();
-        }
-
-        public async Task<Message> Post([FromBody]Message message)
-        {
-            if (message.Type == "Message")
-            {
-                return await Conversation.SendAsync(message, MakeDialog);
-            }
-            else
-            {
-                return HandleSystemMessage(message);
-            }
         }
 
         private Message HandleSystemMessage(Message message)
