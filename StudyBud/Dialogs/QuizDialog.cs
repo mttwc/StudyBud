@@ -11,213 +11,145 @@ namespace StudyBud
     [Serializable]
     public class QuizDialog : IDialog<object>
     {
-        private QuestionBag questionBag;
-        private int curQuestion = 0;
-        private int correctAnswers = 0;
-
-        private string curSubject;
-        private string curDifficulty;
-        private List<Question> questions;
+        private IList<Question> questions;
+        private ScoreRecorder scoreRecorder;
 
         public async Task StartAsync(IDialogContext context)
         {
-            questionBag = new QuestionBag(@"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv");
-            context.Wait(WaitingOnStartAsync);
+            Init(context);
+            await PostQuestionAsync(context);
+            context.Wait(WaitForAnswerAsync);
         }
 
-        public async Task WaitingOnStartAsync(IDialogContext context, IAwaitable<Message> argument)
+        private void Init(IDialogContext context)
         {
-            var message = await argument;
-            if (message.Text.ToLower() == "start")
-            {
-                var subjectsStr = "**Let the quiz begin! Please pick a subject:**";
-                var subjects = questionBag.Subjects;
-                foreach (var subject in subjects)
-                {
-                    subjectsStr += $"\n\nChoose [**{subject}**]";
-                }
-                await context.PostAsync(subjectsStr);
+            scoreRecorder = new ScoreRecorder();
 
-                context.Wait(ChooseSubjectAsync);
-            }
-            else
-            {
-                await context.PostAsync("Type [**Start**] to begin the quiz!");
-                context.Wait(WaitingOnStartAsync);
-            }
+            // TODO: for demo purposes, we don't shuffle
+            var grade = context.PerUserInConversationData.Get<string>(Keys.GRADE);
+            var subject = context.PerUserInConversationData.Get<string>(Keys.SUBJECT);
+            var topic = context.PerUserInConversationData.Get<string>(Keys.TOPIC);
+            questions = QuestionBag.Instance.GetQuestions(grade, subject, topic);
         }
 
-        public async Task ChooseSubjectAsync(IDialogContext context, IAwaitable<Message> argument)
+        private async Task PostQuestionAsync(IDialogContext context)
         {
-            var message = await argument;
-            var capitalized = message.Text.Substring(0, 1).ToUpper() + message.Text.Substring(1).ToLower();
+            var curQuestion = questions[scoreRecorder.TotalCount];
 
-            if (message.Text.ToLower() == "reset")
-            {
-                await AfterResetAsync(context);
-            }
-            else if (message.Text.ToLower() == "end")
-            {
-                await ScorecardAsync(context);
-            }
-            else if (questionBag.Subjects.Contains(capitalized))
-            {
-                curSubject = capitalized;
+            await context.PostAsync("**" + curQuestion.Body + "**");
 
-                var difficultiesStr = "**Please pick a difficulty:**";
-                var difficulties = questionBag.GetDifficulties(curSubject);
-                foreach (var difficulty in difficulties)
-                {
-                    difficultiesStr += $"\n\nChoose [**{difficulty}**]";
-                }
-                await context.PostAsync(difficultiesStr);
-
-                context.Wait(ChooseDifficultyAsync);
-            }
-            else
-            {
-                await context.PostAsync("Sorry, that subject does not exist. Please try again.");
-                context.Wait(ChooseSubjectAsync);
-            }
-        }
-
-        public async Task ChooseDifficultyAsync(IDialogContext context, IAwaitable<Message> argument)
-        {
-            var message = await argument;
-            var capitalized = message.Text.Substring(0, 1).ToUpper() + message.Text.Substring(1).ToLower();
-
-            if (message.Text.ToLower() == "reset")
-            {
-                await AfterResetAsync(context);
-            }
-            else if (message.Text.ToLower() == "end")
-            {
-                await ScorecardAsync(context);
-            }
-            else if (questionBag.GetDifficulties(curSubject).Contains(capitalized))
-            {
-                curDifficulty = capitalized;
-                questions = questionBag.GetQuestions(curSubject, curDifficulty);
-                await PostQuestion(context, curQuestion);
-                context.Wait(QuizAsync);
-            }
-            else
-            {
-                await context.PostAsync($"Sorry, that subject does not exist for subject {curSubject}. Please try again.");
-                context.Wait(ChooseDifficultyAsync);
-            }
-        }
-
-        public async Task QuizAsync(IDialogContext context, IAwaitable<Message> argument)
-        {
-            var message = await argument;
-            if (message.Text.ToLower() == "reset")
-            {
-                await AfterResetAsync(context);
-            }
-            else if (message.Text.ToLower() == "end")
-            {
-                await ScorecardAsync(context);
-            }
-            else
-            {
-                if (message.Text.Length == 1 && char.IsLetter(message.Text[0]))
-                {
-                    char choiceAsChar = char.ToUpper(message.Text[0]);
-                    int choice = choiceAsChar - 65;
-
-                    var response = $"You selected: {choiceAsChar}. ";
-                    if (choice == int.Parse(this.questions[curQuestion].Answer))
-                    {
-                        response += "**That is correct! " + PraiseBag.GetRandomPraise() + "**";
-                        correctAnswers++;
-                    }
-                    else
-                    {
-                        int actualAnswerAsInt = int.Parse(this.questions[curQuestion].Answer);
-                        char actualAsnwerAsChar = (char)(actualAnswerAsInt + 65);
-                        response += $"**The actual answer is: {actualAsnwerAsChar}** ({this.questions[curQuestion].Choices.Split(';')[actualAnswerAsInt]})";
-                    }
-                    await context.PostAsync(response);
-
-                    this.curQuestion++;
-
-                    await GetFeedbackForQuestionAsync(context);
-                }
-                else
-                {
-                    await context.PostAsync("Please type in the letter of the answer you wish to select.");
-                    context.Wait(QuizAsync);
-                }
-            }
-        }
-
-        private async Task PostQuestion(IDialogContext context, int index)
-        {
-            await context.PostAsync("**" + this.questions[this.curQuestion].Body + "**");
-            var choiceStr = "**Enter the letter of the answer you wish to select.**";
-            var choices = this.questions[this.curQuestion].Choices.Split(';');
+            var choiceStr = Strings.QUIZ_MSG_QUESTIONPROMPT;
+            var choices = curQuestion.Choices.Split(';');
             for (var i = 0; i < choices.Length; i++)
             {
-                char answerAsChar = (char)(i + 65);
+                char answerAsChar = IntToLetterUpperCase(i);
                 choiceStr += $"\n\nAnswer [**{answerAsChar}**]: {choices[i]}.";
             }
+
             await context.PostAsync(choiceStr);
         }
 
-        public async Task GetFeedbackForQuestionAsync(IDialogContext context)
+        public async Task WaitForAnswerAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+
+            if (message.Text.Equals(Commands.END, StringComparison.OrdinalIgnoreCase))
+            {
+                await DoneAsync(context);
+            }
+            else
+            {
+                if (IsValidChoice(message.Text))
+                {
+                    var curQuestion = questions[scoreRecorder.TotalCount];
+
+                    char choiceAsChar = char.ToUpper(message.Text[0]);
+                    int choice = LetterToIntIgnoreCase(choiceAsChar);
+                    bool isCorrectChoice = IsCorrectChoice(curQuestion, choice);
+
+                    var response = $"You selected: {choiceAsChar}. ";
+                    if (isCorrectChoice)
+                    {
+                        response += "**That is correct! " + PraiseBag.GetRandomPraise() + "**";
+                    }
+                    else
+                    {
+                        int actualAnswerAsInt = int.Parse(curQuestion.Answer);
+                        char actualAsnwerAsChar = IntToLetterUpperCase(actualAnswerAsInt);
+                        response += $"**The actual answer is: {actualAsnwerAsChar}** ({GetAnswer(curQuestion, actualAnswerAsInt)})";
+                    }
+                    await context.PostAsync(response);
+
+                    scoreRecorder.Record(isCorrectChoice);
+
+                    await PostFeedbackPromptAsync(context);
+                }
+                else
+                {
+                    // Loop
+                    await context.PostAsync(Strings.QUIZ_MSG_SELECT_ANSWER_INSTRUCTION);
+                    context.Wait(WaitForAnswerAsync);
+                }
+            }
+        }
+
+        public async Task PostFeedbackPromptAsync(IDialogContext context)
         {
             string feedbackPrompt = "**Did you like that question?**";
             feedbackPrompt += "\n\nChoice [**A**]: 👍";
             feedbackPrompt += "\n\nChoice [**B**]: 👎";
             feedbackPrompt += "\n\nChoice [**C**]: I prefer not to answer.";
             await context.PostAsync(feedbackPrompt);
-            context.Wait(WaitingOnFeedbackAsync);
+
+            context.Wait(WaitForFeedbackAsync);
         }
 
-        public async Task WaitingOnFeedbackAsync(IDialogContext context, IAwaitable<Message> argument)
+        public async Task WaitForFeedbackAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            var input = message.Text.ToLower();
-            if (input.Equals("a"))
+
+            if (message.Text.Equals("a", StringComparison.OrdinalIgnoreCase))
             {
-                await context.PostAsync("Thank you for your input!");
+                await context.PostAsync(Strings.QUIZ_MSG_THANKS_FOR_FEEDBACK);
                 await PrepareNextQuestionAsync(context);
             }
-            else if (input.Equals("b"))
+            else if (message.Text.Equals("b", StringComparison.OrdinalIgnoreCase))
             {
-                await context.PostAsync("Thank you for your input!");
+                await context.PostAsync(Strings.QUIZ_MSG_THANKS_FOR_FEEDBACK);
                 await PrepareNextQuestionAsync(context);
             }
-            else if (input.Equals("c"))
+            else if (message.Text.Equals("c", StringComparison.OrdinalIgnoreCase))
             {
                 await PrepareNextQuestionAsync(context);
             }
             else
             {
-                await context.PostAsync("Sorry, that was not a valid response.");
-                context.Wait(WaitingOnFeedbackAsync);
+                // Loop
+                await context.PostAsync(Strings.QUIZ_MESSAGE_INVALID_RESPONSE);
+                context.Wait(WaitForFeedbackAsync);
             }
         }
 
         public async Task PrepareNextQuestionAsync(IDialogContext context)
         {
-            if (curQuestion == questions.Count - 1)
+            if (scoreRecorder.TotalCount == questions.Count)
             {
-                await ScorecardAsync(context);
+                // No more questions
+                await ShowScorecardAsync(context);
             }
             else
             {
-                await PostQuestion(context, this.curQuestion);
-                context.Wait(QuizAsync);
+                await PostQuestionAsync(context);
+                context.Wait(WaitForAnswerAsync);
             }
         }
 
-        public async Task ScorecardAsync(IDialogContext context)
+        public async Task ShowScorecardAsync(IDialogContext context)
         {
-            var scorecard = $"***You answered {curQuestion} questions and got {correctAnswers} correct!***";
+            var scorecard = $"***You answered {scoreRecorder.TotalCount} questions and got {scoreRecorder.CorrectCount} correct!***";
             await context.PostAsync(scorecard);
 
+            // TODO: Check if user is auth'd
             var postToOneNoteStr = "**Would you like to post your score card to OneNote?**";
             postToOneNoteStr += "\n\nChoice [**A**]: Yes";
             postToOneNoteStr += "\n\nChoice [**B**]: No";
@@ -229,37 +161,53 @@ namespace StudyBud
         public async Task WaitingForPostToOneNoteAsync(IDialogContext context, IAwaitable<Message> argument)
         {
             var message = await argument;
-            var input = message.Text.ToLower();
-            if (input.Equals("a"))
+            if (message.Text.Equals("a", StringComparison.OrdinalIgnoreCase))
             {
+                // TODO
                 await context.PostAsync("Done!");
-                await AfterResetAsync(context);
+                await DoneAsync(context);
             }
-            else if (input.Equals("b"))
+            else if (message.Text.Equals("b", StringComparison.OrdinalIgnoreCase))
             {
-                await AfterResetAsync(context);
+                await DoneAsync(context);
             }
             else
             {
-                await context.PostAsync("Sorry, that was not a valid response.");
+                // Loop
+                await context.PostAsync(Strings.QUIZ_MESSAGE_INVALID_RESPONSE);
                 context.Wait(WaitingForPostToOneNoteAsync);
             }
         }
 
-        public async Task AfterResetAsync(IDialogContext context)
+        public async Task DoneAsync(IDialogContext context)
         {
-            ResetState();
-            await context.PostAsync("Demo reset. Type [**Start**] to begin the quiz!");
-            context.Wait(WaitingOnStartAsync);
+            context.Done(string.Empty);
         }
 
-        private void ResetState()
+        private static bool IsValidChoice(string choice)
         {
-            curQuestion = 0;
-            correctAnswers = 0;
-            curSubject = null;
-            curDifficulty = null;
-            questions = null;
+            return choice.Length == 1 && char.IsLetter(choice[0]);
+        }
+
+        private static int LetterToIntIgnoreCase(char ch)
+        {
+            ch = char.ToUpper(ch);
+            return ch - 65;
+        }
+
+        public static char IntToLetterUpperCase(int i)
+        {
+            return (char)(i + 65);
+        }
+
+        private static bool IsCorrectChoice(Question question, int choiceIndex)
+        {
+            return choiceIndex == int.Parse(question.Answer);
+        }
+
+        private static string GetAnswer(Question question, int index)
+        {
+            return question.Choices.Split(';')[index];
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
+using StudyBud.Forms;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -9,20 +12,60 @@ namespace StudyBud
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        /// <summary>
-        /// POST: api/Messages
-        /// Receive a message from a user and reply to it
-        /// </summary>
         public async Task<Message> Post([FromBody]Message message)
         {
             if (message.Type == "Message")
             {
-                return await Conversation.SendAsync(message, () => new QuizDialog());
+                return await Conversation.SendAsync(message, MakeDialog);
             }
             else
             {
                 return HandleSystemMessage(message);
             }
+        }
+
+        private static IDialog<object> MakeDialog()
+        {
+            // TODO: What if the user doesn't choose either?
+            // TODO: What if no preferences set?
+            return Chain
+                .PostToChain()
+                .Switch(
+                    new Case<Message, IDialog<string>>((msg) =>
+                    {
+                        var regex = new Regex("^start", RegexOptions.IgnoreCase);
+                        return regex.IsMatch(msg.Text);
+                    }, (context, message) =>
+                    {
+                        return Chain.ContinueWith(new QuizDialog(),
+                                async (ctx, msg) =>
+                                {
+                                    var result = await msg;
+                                    return Chain.Return(Strings.QUIZ_MSG_END);
+                                });
+                    }),
+                    new Case<Message, IDialog<string>>((msg) =>
+                    {
+                        var regex = new Regex("^preferences", RegexOptions.IgnoreCase);
+                        return regex.IsMatch(msg.Text);
+                    }, (context, message) =>
+                    {
+                        return Chain.ContinueWith(FormDialog.FromForm(QuizPicker.BuildForm, FormOptions.PromptInStart),
+                                async (ctx, msg) =>
+                                {
+                                    var result = await msg;
+
+                                    await ctx.PostAsync($"You selected **{result.Grade} {result.Subject}, {result.Topic}**");
+
+                                    ctx.PerUserInConversationData.SetValue(Keys.GRADE, result.Grade);
+                                    ctx.PerUserInConversationData.SetValue(Keys.SUBJECT, result.Subject);
+                                    ctx.PerUserInConversationData.SetValue(Keys.TOPIC, result.Topic);
+
+                                    return Chain.Return(Strings.QUIZPICKER_MSG_END);
+                                });
+                    }))
+                .Unwrap()
+                .PostToUser();
         }
 
         private Message HandleSystemMessage(Message message)
@@ -38,10 +81,7 @@ namespace StudyBud
             }
             else if (message.Type == "BotAddedToConversation")
             {
-                var replyStr = "**Hi there! Please type one of the following options to interact with me!**";
-                replyStr += "\n\n[**Start**]: begins the demo quiz.";
-                //replyStr += "\n\n[Add] - begins the wizard to add a question to the database.";
-                return message.CreateReplyMessage(replyStr);
+                return message.CreateReplyMessage(Strings.SYSTEM_MSG_ADDEDTOCONVO);
             }
             else if (message.Type == "BotRemovedFromConversation")
             {
