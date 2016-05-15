@@ -17,6 +17,7 @@ namespace StudyBud
         public async Task StartAsync(IDialogContext context)
         {
             Init(context);
+            await context.PostAsync($"Starting the quiz for **{questions[0].Grade} {questions[0].Subject}, {questions[0].Topic}**"); // Being lazy
             await PostQuestionAsync(context);
             context.Wait(WaitForAnswerAsync);
         }
