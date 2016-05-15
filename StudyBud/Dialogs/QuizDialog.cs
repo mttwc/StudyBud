@@ -1,7 +1,5 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Connector;
 using StudyBud.Model;
-using StudyBud.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -26,9 +24,10 @@ namespace StudyBud
 
         public async Task ThingAsync(IDialogContext context)
         {
-            await context.PostAsync("ThingsAsync");
-            context.Done("from inside");
-            return;
+            await context.PostAsync("Grade: " + context.PerUserInConversationData.Get<string>(Keys.GRADE));
+            await context.PostAsync("Subject: " + context.PerUserInConversationData.Get<string>(Keys.SUBJECT));
+            await context.PostAsync("Topic: " + context.PerUserInConversationData.Get<string>(Keys.TOPIC));
+            context.Done(string.Empty);
         }
 
         //public async Task WaitingOnStartAsync(IDialogContext context, IAwaitable<Message> argument)

@@ -3,8 +3,6 @@ using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
 using StudyBud.Forms;
-using StudyBud.Model;
-using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -29,7 +27,7 @@ namespace StudyBud
                                 async (ctx, msg) =>
                                 {
                                     var result = await msg;
-                                    return Chain.Return("start finish");
+                                    return Chain.Return(Strings.QUIZ_MSG_END);
                                 });
                     }),
                     new Case<Message, IDialog<string>>((msg) =>
@@ -42,7 +40,11 @@ namespace StudyBud
                                 async (ctx, msg) =>
                                 {
                                     var result = await msg;
-                                    return Chain.Return("preferences finish");
+                                    await ctx.PostAsync(Strings.QUIZPICKER_MSG_SAVING);
+                                    ctx.PerUserInConversationData.SetValue(Keys.GRADE, result.Grade);
+                                    ctx.PerUserInConversationData.SetValue(Keys.SUBJECT, result.Subject);
+                                    ctx.PerUserInConversationData.SetValue(Keys.TOPIC, result.Topic);
+                                    return Chain.Return(Strings.QUIZPICKER_MSG_END);
                                 });
                     }))
                 .Unwrap()
@@ -74,9 +76,7 @@ namespace StudyBud
             }
             else if (message.Type == "BotAddedToConversation")
             {
-                var replyStr = "**Hi there! Please type one of the following options to interact with me!**";
-                replyStr += "\n\n[**Start**]: begins the demo quiz.";
-                return message.CreateReplyMessage(replyStr);
+                return message.CreateReplyMessage(Strings.SYSTEM_MSG_ADDEDTOCONVO);
             }
             else if (message.Type == "BotRemovedFromConversation")
             {

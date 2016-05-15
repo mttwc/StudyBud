@@ -16,7 +16,8 @@ namespace StudyBud.Model
         // Not even a relative path, what a joke!
         private static string path = @"Y:\Programming\Projects\Bot Framework\StudyBud\StudyBud\Persistence\StudyBud.csv";
 
-        public static QuestionBag Instance {
+        public static QuestionBag Instance
+        {
             get
             {
                 if (instance == null)

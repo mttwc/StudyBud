@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow;
-using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow.Advanced;
-using System.Threading.Tasks;
 using StudyBud.Model;
+using System;
+using System.Threading.Tasks;
 
 namespace StudyBud.Forms
 {
     [Serializable]
-    [Template(TemplateUsage.NotUnderstood, "Sorry, I didn't understand \"{0}\". Please try again.")]
-    [Template(TemplateUsage.EnumSelectOne, "Please select a {&}. {||}", ChoiceStyle = ChoiceStyleOptions.PerLine)]
+    [Template(TemplateUsage.NotUnderstood, "Sorry, I didn't understand \"**{0}**\". **Please try again.**")]
+    [Template(TemplateUsage.EnumSelectOne, "**Please select a {&}.** {||}", ChoiceStyle = ChoiceStyleOptions.PerLine)]
     public class QuizPicker
     {
         private static QuestionBag questionBag = QuestionBag.Instance;
@@ -22,7 +21,7 @@ namespace StudyBud.Forms
         public static IForm<QuizPicker> BuildForm()
         {
             return new FormBuilder<QuizPicker>()
-                .Message("Starting a quiz!")
+                .Message(Strings.QUIZPICKER_MSG_INITIAL)
                 .Field(new FieldReflector<QuizPicker>(nameof(Grade))
                     .SetType(null)
                     .SetDefine(DefineGrades))
@@ -36,7 +35,7 @@ namespace StudyBud.Forms
                 .Build();
         }
 
-        static Task<bool> DefineGrades(QuizPicker state, Field<QuizPicker> field)
+        private static Task<bool> DefineGrades(QuizPicker state, Field<QuizPicker> field)
         {
             foreach (var educationLevel in questionBag.GetGrades())
             {
@@ -47,7 +46,7 @@ namespace StudyBud.Forms
             return Task.FromResult(true);
         }
 
-        static Task<bool> DefineSubjects(QuizPicker state, Field<QuizPicker> field)
+        private static Task<bool> DefineSubjects(QuizPicker state, Field<QuizPicker> field)
         {
             foreach (var subject in questionBag.GetSubjects(state.Grade))
             {
@@ -58,7 +57,7 @@ namespace StudyBud.Forms
             return Task.FromResult(true);
         }
 
-        static Task<bool> DefineTopics(QuizPicker state, Field<QuizPicker> field)
+        private static Task<bool> DefineTopics(QuizPicker state, Field<QuizPicker> field)
         {
             foreach (var topic in questionBag.GetTopics(state.Grade, state.Subject))
             {
@@ -69,13 +68,9 @@ namespace StudyBud.Forms
             return Task.FromResult(true);
         }
 
-        static Task<QuizPicker> CompletionCallback(IDialogContext context, QuizPicker state)
+        private static Task<QuizPicker> CompletionCallback(IDialogContext context, QuizPicker state)
         {
-            context.PostAsync("Your selection is complete! Give me a second while I get your quiz ready ...");
-            context.PerUserInConversationData.SetValue("grade", state.Grade);
-            context.PerUserInConversationData.SetValue("subject", state.Subject);
-            context.PerUserInConversationData.SetValue("topic", state.Topic);
-            context.Done(state);
+            //context.Done(state);
             return Task.FromResult(state);
         }
     }
