@@ -14,81 +14,46 @@ namespace StudyBud
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        private static IDialog<object> MakeQuizPickerDialog()
+        private static IDialog<object> MakeDialog()
         {
             return Chain
                 .PostToChain()
                 .Switch(
                     new Case<Message, IDialog<string>>((msg) =>
                     {
-                        var regex = new Regex("^preferences", RegexOptions.IgnoreCase);
-                        return regex.IsMatch(msg.Text);
-                    }, (context, message) =>
-                    {
-                        //context.PerUserInConversationData.SetValue("grade", quizPickerResult.Grade);
-                        //context.PerUserInConversationData.SetValue("subject", quizPickerResult.Subject);
-                        //context.PerUserInConversationData.SetValue("topic", quizPickerResult.Topic);
-                        //return Chain.ContinueWith(QuizPicker.BuildForm());
-                        return Chain.ContinueWith(new QuizDialog(),
-                                async (ctx, res) =>
-                                {
-                                    var msaInfo = await res;
-                                    return Chain.Return("preferences finish");
-                                });
-                    }),
-                    new Case<Message, IDialog<string>>((msg) =>
-                    {
                         var regex = new Regex("^start", RegexOptions.IgnoreCase);
                         return regex.IsMatch(msg.Text);
                     }, (context, message) =>
                     {
-                        var quizPicker = Chain.From(() => FormDialog.FromForm(QuizPicker.BuildForm));
-                        return Chain.ContinueWith(quizPicker,
-                                async (ctx, res) =>
+                        return Chain.ContinueWith(new QuizDialog(),
+                                async (ctx, msg) =>
                                 {
-                                    var msaInfo = await res;
-                                    await context.PostAsync("start finish");
+                                    var result = await msg;
                                     return Chain.Return("start finish");
+                                });
+                    }),
+                    new Case<Message, IDialog<string>>((msg) =>
+                    {
+                        var regex = new Regex("^preferences", RegexOptions.IgnoreCase);
+                        return regex.IsMatch(msg.Text);
+                    }, (context, message) =>
+                    {
+                        return Chain.ContinueWith(FormDialog.FromForm(QuizPicker.BuildForm),
+                                async (ctx, msg) =>
+                                {
+                                    var result = await msg;
+                                    return Chain.Return("preferences finish");
                                 });
                     }))
                 .Unwrap()
                 .PostToUser();
-                //.From(() => FormDialog.FromForm(QuizPicker.BuildForm))
-                //.Do(async (context, selection) =>
-                //{
-                //    try
-                //    {
-                //        var quizPickerResult = await selection;
-                //        context.PerUserInConversationData.SetValue("grade", quizPickerResult.Grade);
-                //        context.PerUserInConversationData.SetValue("subject", quizPickerResult.Subject);
-                //        context.PerUserInConversationData.SetValue("topic", quizPickerResult.Topic);
-                //    }
-                //    catch (FormCanceledException<QuizPicker> fce)
-                //    {
-                //        await context.PostAsync("Quiz canceled");
-                //    }
-                //    // Need FormOptions.PromptInStart to start next dialog 
-                //});
         }
 
         public async Task<Message> Post([FromBody]Message message)
         {
             if (message.Type == "Message")
             {
-                //return await Conversation.SendAsync(message, () => new QuizDialog());
-                return await Conversation.SendAsync(message, MakeQuizPickerDialog);
-                //if (message.Text.Equals("start", StringComparison.InvariantCultureIgnoreCase))
-                //{
-                //    return await Conversation.SendAsync(message, () => new QuizDialog());
-                //}
-                //else if (message.Text.Equals("preferences", StringComparison.InvariantCultureIgnoreCase))
-                //{
-                //    return await Conversation.SendAsync(message, MakeQuizPickerDialog);
-                //}
-                //else
-                //{
-                //    return null;
-                //}
+                return await Conversation.SendAsync(message, MakeDialog);
             }
             else
             {
