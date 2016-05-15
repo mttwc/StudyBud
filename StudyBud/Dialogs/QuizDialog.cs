@@ -32,7 +32,7 @@ namespace StudyBud
             questions = QuestionBag.Instance.GetQuestions(grade, subject, topic);
         }
 
-        public async Task PostQuestionAsync(IDialogContext context, int questionIndex)
+        private async Task PostQuestionAsync(IDialogContext context, int questionIndex)
         {
             await context.PostAsync("**" + questions[questionIndex].Body + "**");
             var choiceStr = Strings.QUIZ_MSG_QUESTIONPROMPT;
