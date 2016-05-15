@@ -4,6 +4,7 @@ using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
 using StudyBud.Forms;
 using StudyBud.Model;
+using System;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -20,6 +21,7 @@ namespace StudyBud
                     try
                     {
                         var quizPickerResult = await selection;
+                        context.PerUserInConversationData.SetValue("topic", quizPickerResult.Topic);
                         await context.PostAsync(quizPickerResult.Grade);
                         await context.PostAsync(quizPickerResult.Subject);
                         await context.PostAsync(quizPickerResult.Topic);
@@ -42,6 +44,18 @@ namespace StudyBud
             {
                 //return await Conversation.SendAsync(message, () => new QuizDialog());
                 return await Conversation.SendAsync(message, MakeQuizPickerDialog);
+                //if (message.Text.Equals("start", StringComparison.InvariantCultureIgnoreCase))
+                //{
+                //    return await Conversation.SendAsync(message, () => new QuizDialog());
+                //}
+                //else if (message.Text.Equals("preferences", StringComparison.InvariantCultureIgnoreCase))
+                //{
+                //    return await Conversation.SendAsync(message, MakeQuizPickerDialog);
+                //}
+                //else
+                //{
+                //    return null;
+                //}
             }
             else
             {
