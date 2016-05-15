@@ -25,7 +25,6 @@ namespace StudyBud
         // QuizPicker
         public const string QUIZPICKER_MSG_INITIAL = "Changing your quiz preferences!";
 
-        public const string QUIZPICKER_MSG_SAVING = "Your selection is complete! Give me a second while I get your quiz ready ...";
         public const string QUIZPICKER_MSG_END = "**Your preferences have been saved!**\n\n" + SYSTEM_MSG_OPTIONS;
     }
 }

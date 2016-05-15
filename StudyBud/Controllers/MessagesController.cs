@@ -54,10 +54,13 @@ namespace StudyBud
                                 async (ctx, msg) =>
                                 {
                                     var result = await msg;
-                                    await ctx.PostAsync(Strings.QUIZPICKER_MSG_SAVING);
+
+                                    await ctx.PostAsync($"You selected **{result.Grade} {result.Subject}, {result.Topic}**");
+
                                     ctx.PerUserInConversationData.SetValue(Keys.GRADE, result.Grade);
                                     ctx.PerUserInConversationData.SetValue(Keys.SUBJECT, result.Subject);
                                     ctx.PerUserInConversationData.SetValue(Keys.TOPIC, result.Topic);
+
                                     return Chain.Return(Strings.QUIZPICKER_MSG_END);
                                 });
                     }))
