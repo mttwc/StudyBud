@@ -13,6 +13,7 @@
 
         // Quiz
         public const string QUIZ_MSG_END = "**The quiz has ended!**\n\n" + SYSTEM_MSG_OPTIONS;
+        public const string QUIZ_MSG_QUESTIONPROMPT = "**Enter the letter of the answer you wish to select.**";
 
         // QuizPicker
         public const string QUIZPICKER_MSG_INITIAL = "Changing your quiz preferences!";

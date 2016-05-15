@@ -9,24 +9,44 @@ namespace StudyBud
     [Serializable]
     public class QuizDialog : IDialog<object>
     {
-        private QuestionBag questionBag;
-        private int curQuestion = 0;
-        private int correctAnswers = 0;
-
-        private string curSubject;
-        private string curDifficulty;
         private IList<Question> questions;
+        private int curQuestion;
+        private int correctAnswers;
 
         public async Task StartAsync(IDialogContext context)
         {
-            await ThingAsync(context);
+            Init(context);
+            await PostQuestionAsync(context, curQuestion);
+            await DoneAsync(context);
         }
 
-        public async Task ThingAsync(IDialogContext context)
+        private void Init(IDialogContext context)
         {
-            await context.PostAsync("Grade: " + context.PerUserInConversationData.Get<string>(Keys.GRADE));
-            await context.PostAsync("Subject: " + context.PerUserInConversationData.Get<string>(Keys.SUBJECT));
-            await context.PostAsync("Topic: " + context.PerUserInConversationData.Get<string>(Keys.TOPIC));
+            curQuestion = 0;
+            correctAnswers = 0;
+
+            // TODO: for demo purposes, we don't shuffle
+            var grade = context.PerUserInConversationData.Get<string>(Keys.GRADE);
+            var subject = context.PerUserInConversationData.Get<string>(Keys.SUBJECT);
+            var topic = context.PerUserInConversationData.Get<string>(Keys.TOPIC);
+            questions = QuestionBag.Instance.GetQuestions(grade, subject, topic);
+        }
+
+        public async Task PostQuestionAsync(IDialogContext context, int questionIndex)
+        {
+            await context.PostAsync("**" + questions[questionIndex].Body + "**");
+            var choiceStr = Strings.QUIZ_MSG_QUESTIONPROMPT;
+            var choices = questions[questionIndex].Choices.Split(';');
+            for (var i = 0; i < choices.Length; i++)
+            {
+                char answerAsChar = (char)(i + 65);
+                choiceStr += $"\n\nAnswer [**{answerAsChar}**]: {choices[i]}.";
+            }
+            await context.PostAsync(choiceStr);
+        }
+
+        public async Task DoneAsync(IDialogContext context)
+        {
             context.Done(string.Empty);
         }
 

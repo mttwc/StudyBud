@@ -26,6 +26,8 @@ namespace StudyBud
 
         private static IDialog<object> MakeDialog()
         {
+            // TODO: What if the user doesn't choose either?
+            // TODO: What if no preferences set?
             return Chain
                 .PostToChain()
                 .Switch(
