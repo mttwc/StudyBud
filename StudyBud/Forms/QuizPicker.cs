@@ -60,6 +60,9 @@ namespace StudyBud.Forms
                 .OnCompletionAsync(async (context, quizPicker) =>
                 {
                     await context.PostAsync("Your selection is complete! Give me a second while I get your quiz ready ...");
+                    context.PerUserInConversationData.SetValue("grade", quizPicker.Grade);
+                    context.PerUserInConversationData.SetValue("subject", quizPicker.Subject);
+                    context.PerUserInConversationData.SetValue("topic", quizPicker.Topic);
                 })
                 .Build();
         }

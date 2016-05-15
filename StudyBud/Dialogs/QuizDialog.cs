@@ -21,9 +21,14 @@ namespace StudyBud
 
         public async Task StartAsync(IDialogContext context)
         {
-            //questionBag = QuestionBag.Instance;
-            //context.Wait(WaitingOnStartAsync);
-            await context.PostAsync(context.PerUserInConversationData.Get<string>("topic"));
+            await ThingAsync(context);
+        }
+
+        public async Task ThingAsync(IDialogContext context)
+        {
+            await context.PostAsync("ThingsAsync");
+            context.Done("from inside");
+            return;
         }
 
         //public async Task WaitingOnStartAsync(IDialogContext context, IAwaitable<Message> argument)
