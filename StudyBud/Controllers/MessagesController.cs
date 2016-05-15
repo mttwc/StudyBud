@@ -42,7 +42,8 @@ namespace StudyBud
                         return regex.IsMatch(msg.Text);
                     }, (context, message) =>
                     {
-                        return Chain.ContinueWith(new QuizDialog(),
+                        var quizPicker = Chain.From(() => FormDialog.FromForm(QuizPicker.BuildForm));
+                        return Chain.ContinueWith(quizPicker,
                                 async (ctx, res) =>
                                 {
                                     var msaInfo = await res;
